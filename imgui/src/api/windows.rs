@@ -1,7 +1,7 @@
 use godot::prelude::*;
 use imgui::sys;
 
-use super::{cstr, vec2, vector2_of, ImGuiApi};
+use super::{cstr, vec2, vec2s, vector2_of, ImGuiApi};
 use crate::backend::is_in_frame;
 
 #[godot_api(secondary)]
@@ -76,7 +76,7 @@ impl ImGuiApi {
             return false;
         }
         let c = cstr(&id);
-        let r = unsafe { sys::igBeginChild_Str(c.as_ptr(), vec2(width, height), border, flags) };
+        let r = unsafe { sys::igBeginChild_Str(c.as_ptr(), vec2s(width, height), border, flags) };
         crate::api::guard::open("child");
         r
     }
@@ -87,8 +87,8 @@ impl ImGuiApi {
         if is_in_frame() {
             unsafe {
                 sys::igSetNextWindowSizeConstraints(
-                    vec2(min.x, min.y),
-                    vec2(max.x, max.y),
+                    vec2s(min.x, min.y),
+                    vec2s(max.x, max.y),
                     None,
                     std::ptr::null_mut(),
                 )
@@ -108,7 +108,7 @@ impl ImGuiApi {
     #[func]
     fn set_next_window_content_size(&self, size: Vector2) {
         if is_in_frame() {
-            unsafe { sys::igSetNextWindowContentSize(vec2(size.x, size.y)) }
+            unsafe { sys::igSetNextWindowContentSize(vec2s(size.x, size.y)) }
         }
     }
 

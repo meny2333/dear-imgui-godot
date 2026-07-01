@@ -1,7 +1,7 @@
 use godot::prelude::*;
 use imgui::sys;
 
-use super::{vec2, vector2_of, ImGuiApi};
+use super::{scaled, vec2, vec2s, vector2_of, ImGuiApi};
 use crate::backend::is_in_frame;
 
 #[godot_api(secondary)]
@@ -29,7 +29,7 @@ impl ImGuiApi {
     #[func]
     fn dummy(&self, size: Vector2) {
         if is_in_frame() {
-            unsafe { sys::igDummy(vec2(size.x, size.y)) }
+            unsafe { sys::igDummy(vec2s(size.x, size.y)) }
         }
     }
 
@@ -37,7 +37,7 @@ impl ImGuiApi {
     #[func]
     fn indent(&self, width: f32) {
         if is_in_frame() {
-            unsafe { sys::igIndent(width) }
+            unsafe { sys::igIndent(scaled(width)) }
         }
     }
 
@@ -45,7 +45,7 @@ impl ImGuiApi {
     #[func]
     fn unindent(&self, width: f32) {
         if is_in_frame() {
-            unsafe { sys::igUnindent(width) }
+            unsafe { sys::igUnindent(scaled(width)) }
         }
     }
 
@@ -78,7 +78,7 @@ impl ImGuiApi {
     #[func]
     fn push_item_width(&self, width: f32) {
         if is_in_frame() {
-            unsafe { sys::igPushItemWidth(width) };
+            unsafe { sys::igPushItemWidth(scaled(width)) };
             crate::api::guard::open("item_width");
         }
     }
@@ -95,7 +95,7 @@ impl ImGuiApi {
     #[func]
     fn set_next_item_width(&self, width: f32) {
         if is_in_frame() {
-            unsafe { sys::igSetNextItemWidth(width) }
+            unsafe { sys::igSetNextItemWidth(scaled(width)) }
         }
     }
 

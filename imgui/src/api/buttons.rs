@@ -1,7 +1,7 @@
 use godot::prelude::*;
 use imgui::sys;
 
-use super::{cstr, imvec4, vec2, ImGuiApi};
+use super::{cstr, imvec4, vec2s, ImGuiApi};
 use crate::backend::is_in_frame;
 
 #[godot_api(secondary)]
@@ -32,7 +32,7 @@ impl ImGuiApi {
             return false;
         }
         let c = cstr(&id);
-        unsafe { sys::igInvisibleButton(c.as_ptr(), vec2(size.x, size.y), 0) }
+        unsafe { sys::igInvisibleButton(c.as_ptr(), vec2s(size.x, size.y), 0) }
     }
 
     /// Draw a button showing a color swatch. `flags` are `COLOR_EDIT_*` constants.
@@ -44,7 +44,7 @@ impl ImGuiApi {
             return false;
         }
         let c = cstr(&id);
-        unsafe { sys::igColorButton(c.as_ptr(), imvec4(color), flags, vec2(size.x, size.y)) }
+        unsafe { sys::igColorButton(c.as_ptr(), imvec4(color), flags, vec2s(size.x, size.y)) }
     }
 
     /// Draw a checkbox that toggles one or more bits. Pass the current flags and the
@@ -81,10 +81,10 @@ impl ImGuiApi {
             return;
         }
         if overlay.is_empty() {
-            unsafe { sys::igProgressBar(fraction, vec2(size.x, size.y), std::ptr::null()) }
+            unsafe { sys::igProgressBar(fraction, vec2s(size.x, size.y), std::ptr::null()) }
         } else {
             let c = cstr(&overlay);
-            unsafe { sys::igProgressBar(fraction, vec2(size.x, size.y), c.as_ptr()) }
+            unsafe { sys::igProgressBar(fraction, vec2s(size.x, size.y), c.as_ptr()) }
         }
     }
 }

@@ -1,7 +1,7 @@
 use godot::prelude::*;
 use imgui::sys;
 
-use super::{cstr, vec2, ImGuiApi};
+use super::{cstr, vec2s, ImGuiApi};
 use crate::backend::is_in_frame;
 
 #[godot_api(secondary)]
@@ -138,7 +138,7 @@ impl ImGuiApi {
         let c = cstr(&label);
         let mut v = value;
         unsafe {
-            sys::igVSliderFloat(c.as_ptr(), vec2(size.x, size.y), &mut v, min, max, c"%.3f".as_ptr(), 0)
+            sys::igVSliderFloat(c.as_ptr(), vec2s(size.x, size.y), &mut v, min, max, c"%.3f".as_ptr(), 0)
         };
         v
     }
@@ -152,7 +152,7 @@ impl ImGuiApi {
         let c = cstr(&label);
         let mut v = value;
         unsafe {
-            sys::igVSliderInt(c.as_ptr(), vec2(size.x, size.y), &mut v, min, max, c"%d".as_ptr(), 0)
+            sys::igVSliderInt(c.as_ptr(), vec2s(size.x, size.y), &mut v, min, max, c"%d".as_ptr(), 0)
         };
         v
     }

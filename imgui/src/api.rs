@@ -38,6 +38,18 @@ fn vec2(x: f32, y: f32) -> sys::ImVec2 {
     sys::ImVec2 { x, y }
 }
 
+/// Multiply a logical pixel length by the global UI scale. A `0` (ImGui's auto/default
+/// sentinel) stays `0`.
+fn scaled(v: f32) -> f32 {
+    v * crate::backend::applied_scale()
+}
+
+/// Build an `ImVec2` from a logical pixel size, scaled by the global UI scale.
+fn vec2s(x: f32, y: f32) -> sys::ImVec2 {
+    let s = crate::backend::applied_scale();
+    sys::ImVec2 { x: x * s, y: y * s }
+}
+
 fn vector2_of(v: sys::ImVec2) -> Vector2 {
     Vector2::new(v.x, v.y)
 }
@@ -172,7 +184,7 @@ impl ImGuiApi {
             return false;
         }
         let c = cstr(&id);
-        let r = unsafe { sys::igBeginChild_Str(c.as_ptr(), vec2(width, height), false, 0) };
+        let r = unsafe { sys::igBeginChild_Str(c.as_ptr(), vec2s(width, height), false, 0) };
         crate::api::guard::open("child");
         r
     }
@@ -227,7 +239,7 @@ impl ImGuiApi {
             return false;
         }
         let c = cstr(&label);
-        unsafe { sys::igButton(c.as_ptr(), vec2(width, height)) }
+        unsafe { sys::igButton(c.as_ptr(), vec2s(width, height)) }
     }
 
     /// Draw a button without frame padding. Returns `true` on the frame it is clicked.
@@ -433,7 +445,7 @@ impl ImGuiApi {
     #[func]
     fn set_next_window_size(&self, width: f32, height: f32, cond: i32) {
         if is_in_frame() {
-            unsafe { sys::igSetNextWindowSize(vec2(width, height), cond) }
+            unsafe { sys::igSetNextWindowSize(vec2s(width, height), cond) }
         }
     }
 

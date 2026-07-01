@@ -4,7 +4,7 @@ use godot::classes::Texture2D;
 use godot::prelude::*;
 use imgui::sys;
 
-use super::{cstr, imvec4, vec2, ImGuiApi};
+use super::{cstr, imvec4, vec2, vec2s, ImGuiApi};
 use crate::backend::{is_in_frame, register_texture};
 
 fn white() -> sys::ImVec4 {
@@ -27,7 +27,7 @@ impl ImGuiApi {
     }
 
     /// Draw a registered texture at the given size. `texture_id` comes from
-    /// `register_texture()`.
+    /// `register_texture()`. The size is in logical pixels, scaled by the global UI scale.
     #[func]
     fn image(&self, texture_id: i64, size: Vector2) {
         if !is_in_frame() {
@@ -36,7 +36,7 @@ impl ImGuiApi {
         unsafe {
             sys::igImage(
                 texture_id as usize as *mut c_void,
-                vec2(size.x, size.y),
+                vec2s(size.x, size.y),
                 vec2(0.0, 0.0),
                 vec2(1.0, 1.0),
                 white(),
@@ -46,7 +46,7 @@ impl ImGuiApi {
     }
 
     /// Draw a clickable image button. `texture_id` comes from `register_texture()`.
-    /// Returns `true` on the frame it is clicked.
+    /// Returns `true` on the frame it is clicked. The size is in logical pixels, scaled.
     #[func]
     fn image_button(&self, id: GString, texture_id: i64, size: Vector2) -> bool {
         if !is_in_frame() {
@@ -57,7 +57,7 @@ impl ImGuiApi {
             sys::igImageButton(
                 c.as_ptr(),
                 texture_id as usize as *mut c_void,
-                vec2(size.x, size.y),
+                vec2s(size.x, size.y),
                 vec2(0.0, 0.0),
                 vec2(1.0, 1.0),
                 transparent(),

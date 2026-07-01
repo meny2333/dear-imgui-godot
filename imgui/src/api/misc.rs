@@ -106,6 +106,24 @@ impl ImGuiApi {
         crate::backend::request_reset_layout();
     }
 
+    /// Set the global UI scale, a DPI-like multiplier applied to fonts, widgets and
+    /// sizes across the whole interface. It defaults to the operating system scale,
+    /// takes effect on the next frame and is persisted with the layout. Clamped to
+    /// `1.0 ..= 4.0`.
+    #[func]
+    fn set_global_scale(&self, scale: f32) {
+        if scale < 1.0 {
+            godot_warn!("ImGui.set_global_scale: {scale} is below 1.0 and will be clamped to 1.0");
+        }
+        crate::backend::set_desired_scale(scale);
+    }
+
+    /// Return the current global UI scale.
+    #[func]
+    fn get_global_scale(&self) -> f32 {
+        crate::backend::desired_scale()
+    }
+
     /// Return the Dear ImGui library version string.
     #[func]
     fn get_version(&self) -> GString {

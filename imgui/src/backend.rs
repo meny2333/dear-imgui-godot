@@ -1,10 +1,10 @@
 use std::cell::Cell;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
-use godot::classes::{DirAccess, FileAccess, INode, InputEvent, Node, Texture2D};
+use godot::classes::{DirAccess, DisplayServer, FileAccess, INode, InputEvent, Node, Texture2D};
 use godot::prelude::*;
 
-use imgui::{BackendFlags, ConfigFlags, Context};
+use imgui::{BackendFlags, ConfigFlags, Context, Style};
 
 use crate::fonts::{self, TextureRegistry};
 use crate::input;
@@ -16,6 +16,33 @@ static RESET_REQUESTED: AtomicBool = AtomicBool::new(false);
 
 pub(crate) fn request_reset_layout() {
     RESET_REQUESTED.store(true, Ordering::Relaxed);
+}
+
+/// The global UI scale the active controller should apply, stored as `f32` bits.
+static DESIRED_SCALE: AtomicU32 = AtomicU32::new(0);
+
+/// The range the UI scale is clamped to.
+const SCALE_MIN: f32 = 1.0;
+const SCALE_MAX: f32 = 4.0;
+
+/// Set the global UI scale. Clamped to a sane range and picked up on the next frame.
+pub(crate) fn set_desired_scale(scale: f32) {
+    DESIRED_SCALE.store(scale.clamp(SCALE_MIN, SCALE_MAX).to_bits(), Ordering::Relaxed);
+}
+
+/// Return the global UI scale.
+pub(crate) fn desired_scale() -> f32 {
+    f32::from_bits(DESIRED_SCALE.load(Ordering::Relaxed))
+}
+
+/// The global UI scale actually applied, always finite and within `SCALE_MIN..=SCALE_MAX`.
+pub(crate) fn applied_scale() -> f32 {
+    let s = desired_scale();
+    if s.is_finite() {
+        s.clamp(SCALE_MIN, SCALE_MAX)
+    } else {
+        SCALE_MIN
+    }
 }
 
 thread_local! {
@@ -75,9 +102,26 @@ fn save_ini(data: &str) -> bool {
     let Some(mut f) = FileAccess::open(INI_PATH, ModeFlags::WRITE) else {
         return false;
     };
-    f.store_string(data);
+    // Persist the UI scale alongside the layout. A bare `Scale=` line before the
+    // first `[section]` is ignored by Dear ImGui's parser, so the file stays valid.
+    f.store_string(&format!("Scale={:.4}\n{data}", applied_scale()));
     f.close();
     true
+}
+
+/// Read back the persisted UI scale from an ini file, if present. It sits ahead of
+/// the first `[section]` header, so scanning stops there.
+fn parse_saved_scale(ini: &str) -> Option<f32> {
+    for line in ini.lines() {
+        let line = line.trim();
+        if line.starts_with('[') {
+            break;
+        }
+        if let Some(rest) = line.strip_prefix("Scale=") {
+            return rest.trim().parse::<f32>().ok();
+        }
+    }
+    None
 }
 
 fn delete_ini() {
@@ -102,6 +146,14 @@ pub struct ImGuiController {
     renderer: CanvasRenderer,
     textures: TextureRegistry,
     passive: bool,
+    /// The unscaled (1:1) style. The live style is derived from it each frame by
+    /// scaling sizes absolutely, so repeated scaling cannot drift or reach zero.
+    base_style: Option<Style>,
+    /// The scale the font atlas is baked at; other scales stretch it until settled.
+    baked_scale: f32,
+    /// The scale seen last frame, used to detect when the slider has settled.
+    settle_scale: f32,
+    font_tex_id: usize,
 }
 
 #[godot_api]
@@ -113,6 +165,10 @@ impl INode for ImGuiController {
             renderer: CanvasRenderer::new(),
             textures: TextureRegistry::new(),
             passive: false,
+            base_style: None,
+            baked_scale: 1.0,
+            settle_scale: 1.0,
+            font_tex_id: 0,
         }
     }
 
@@ -133,10 +189,28 @@ impl INode for ImGuiController {
         self.renderer.init(vp_rid);
 
         let mut ctx = new_context();
-        if let Some(text) = load_ini() {
+        let saved_scale = load_ini().and_then(|text| {
             ctx.load_ini_settings(&text);
-        }
-        fonts::build_font_atlas(&mut ctx, &mut self.textures);
+            parse_saved_scale(&text)
+        });
+
+        // Restore the persisted scale, else default to the OS scale.
+        let scale = saved_scale
+            .filter(|s| s.is_finite())
+            .unwrap_or_else(|| {
+                let os_scale = DisplayServer::singleton().screen_get_scale();
+                if os_scale.is_finite() && os_scale > 0.0 {
+                    os_scale
+                } else {
+                    1.0
+                }
+            })
+            .clamp(SCALE_MIN, SCALE_MAX);
+        self.base_style = Some(*ctx.style());
+        self.font_tex_id = fonts::build_font_atlas(&mut ctx, &mut self.textures, scale, 0);
+        self.baked_scale = scale;
+        self.settle_scale = scale;
+        set_desired_scale(scale);
         self.ctx = Some(ctx);
 
         self.base_mut().set_process(true);
@@ -165,9 +239,39 @@ impl INode for ImGuiController {
             delete_ini();
             self.ctx = None;
             let mut ctx = new_context();
-            fonts::build_font_atlas(&mut ctx, &mut self.textures);
+            self.base_style = Some(*ctx.style());
+            self.font_tex_id = fonts::build_font_atlas(
+                &mut ctx,
+                &mut self.textures,
+                self.baked_scale,
+                self.font_tex_id,
+            );
             self.ctx = Some(ctx);
         }
+
+        let scale = applied_scale();
+        let ctx = self.ctx.as_mut().unwrap();
+
+        // Scale the style from the 1:1 base every frame (sizes absolute, colors kept),
+        // so sliding down cannot truncate metrics toward zero the way relative scaling did.
+        if let Some(base) = self.base_style {
+            let colors = ctx.style().colors;
+            let mut styled = base;
+            styled.scale_all_sizes(scale);
+            styled.colors = colors;
+            *ctx.style_mut() = styled;
+        }
+
+        // Stretch the baked atlas for an immediate preview, then rebake for crispness
+        // once the scale settles, at most once per pause rather than every frame.
+        ctx.io_mut().font_global_scale = scale / self.baked_scale;
+        if scale == self.settle_scale && (scale - self.baked_scale).abs() > 0.001 {
+            self.font_tex_id =
+                fonts::build_font_atlas(ctx, &mut self.textures, scale, self.font_tex_id);
+            ctx.io_mut().font_global_scale = 1.0;
+            self.baked_scale = scale;
+        }
+        self.settle_scale = scale;
 
         let viewport = self.base().get_viewport().expect("viewport");
         let size = viewport.get_visible_rect().size;

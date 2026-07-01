@@ -4,7 +4,7 @@ use std::os::raw::c_char;
 use godot::prelude::*;
 use imgui::sys;
 
-use super::{cstr, vec2, ImGuiApi};
+use super::{cstr, vec2s, ImGuiApi};
 use crate::backend::is_in_frame;
 
 fn c_items(items: &PackedStringArray) -> (Vec<CString>, Vec<*const c_char>) {
@@ -93,7 +93,7 @@ impl ImGuiApi {
             return false;
         }
         let c = cstr(&label);
-        unsafe { sys::igSelectable_Bool(c.as_ptr(), selected, flags, vec2(size.x, size.y)) }
+        unsafe { sys::igSelectable_Bool(c.as_ptr(), selected, flags, vec2s(size.x, size.y)) }
     }
 
     /// Selectable item that toggles its own state. Pass the current state; returns the new state.
@@ -104,7 +104,7 @@ impl ImGuiApi {
         }
         let c = cstr(&label);
         let mut v = selected;
-        unsafe { sys::igSelectable_BoolPtr(c.as_ptr(), &mut v, flags, vec2(size.x, size.y)) };
+        unsafe { sys::igSelectable_BoolPtr(c.as_ptr(), &mut v, flags, vec2s(size.x, size.y)) };
         v
     }
 
@@ -117,7 +117,7 @@ impl ImGuiApi {
             return false;
         }
         let c = cstr(&label);
-        let r = unsafe { sys::igBeginListBox(c.as_ptr(), vec2(size.x, size.y)) };
+        let r = unsafe { sys::igBeginListBox(c.as_ptr(), vec2s(size.x, size.y)) };
         if r { crate::api::guard::open("listbox"); }
         r
     }

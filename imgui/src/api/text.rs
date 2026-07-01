@@ -1,7 +1,7 @@
 use godot::prelude::*;
 use imgui::sys;
 
-use super::{cstr, ImGuiApi};
+use super::{cstr, scaled, ImGuiApi};
 use crate::backend::is_in_frame;
 
 #[godot_api(secondary)]
@@ -51,7 +51,7 @@ impl ImGuiApi {
     #[func]
     fn push_text_wrap_pos(&self, wrap_x: f32) {
         if is_in_frame() {
-            unsafe { sys::igPushTextWrapPos(wrap_x) };
+            unsafe { sys::igPushTextWrapPos(scaled(wrap_x)) };
             crate::api::guard::open("text_wrap");
         }
     }

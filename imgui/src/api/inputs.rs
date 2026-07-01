@@ -3,7 +3,7 @@ use std::os::raw::c_char;
 use godot::prelude::*;
 use imgui::sys;
 
-use super::{cstr, vec2, ImGuiApi};
+use super::{cstr, vec2s, ImGuiApi};
 use crate::backend::is_in_frame;
 
 fn fill_buf(text: &GString, cap: usize) -> Vec<u8> {
@@ -91,7 +91,7 @@ impl ImGuiApi {
                 c.as_ptr(),
                 buf.as_mut_ptr() as *mut c_char,
                 cap,
-                vec2(size.x, size.y),
+                vec2s(size.x, size.y),
                 flags,
                 None,
                 std::ptr::null_mut(),

@@ -1,7 +1,7 @@
 use godot::prelude::*;
 use imgui::sys;
 
-use super::{cstr, imvec4, vec2, ImGuiApi};
+use super::{cstr, imvec4, scaled, vec2s, ImGuiApi};
 use crate::backend::is_in_frame;
 
 #[godot_api(secondary)]
@@ -138,7 +138,7 @@ impl ImGuiApi {
         }
         let c = cstr(&id);
         let r = unsafe {
-            sys::igBeginTable(c.as_ptr(), columns, flags, vec2(outer_size.x, outer_size.y), inner_width)
+            sys::igBeginTable(c.as_ptr(), columns, flags, vec2s(outer_size.x, outer_size.y), scaled(inner_width))
         };
         if r { crate::api::guard::open("table"); }
         r
@@ -156,7 +156,7 @@ impl ImGuiApi {
     #[func]
     fn table_next_row(&self, flags: i32, min_height: f32) {
         if is_in_frame() {
-            unsafe { sys::igTableNextRow(flags, min_height) }
+            unsafe { sys::igTableNextRow(flags, scaled(min_height)) }
         }
     }
 
@@ -185,7 +185,13 @@ impl ImGuiApi {
     fn table_setup_column(&self, label: GString, flags: i32, init_width_or_weight: f32) {
         if is_in_frame() {
             let c = cstr(&label);
-            unsafe { sys::igTableSetupColumn(c.as_ptr(), flags, init_width_or_weight, 0) }
+            // Only a fixed width is in pixels; a stretch column's value is a ratio.
+            let w = if flags & sys::ImGuiTableColumnFlags_WidthFixed as i32 != 0 {
+                scaled(init_width_or_weight)
+            } else {
+                init_width_or_weight
+            };
+            unsafe { sys::igTableSetupColumn(c.as_ptr(), flags, w, 0) }
         }
     }
 

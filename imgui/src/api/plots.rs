@@ -3,7 +3,7 @@ use std::mem::size_of;
 use godot::prelude::*;
 use imgui::sys;
 
-use super::{cstr, vec2, ImGuiApi};
+use super::{cstr, vec2s, ImGuiApi};
 use crate::backend::is_in_frame;
 
 #[godot_api(secondary)]
@@ -33,7 +33,7 @@ impl ImGuiApi {
                 o_ptr,
                 scale_min,
                 scale_max,
-                vec2(size.x, size.y),
+                vec2s(size.x, size.y),
                 size_of::<f32>() as i32,
             )
         }
@@ -64,7 +64,7 @@ impl ImGuiApi {
                 o_ptr,
                 scale_min,
                 scale_max,
-                vec2(size.x, size.y),
+                vec2s(size.x, size.y),
                 size_of::<f32>() as i32,
             )
         }
