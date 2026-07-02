@@ -57,7 +57,7 @@ impl ImGuiApi {
         let l = cstr(&label);
         let p = cstr(&preview);
         let r = unsafe { sys::igBeginCombo(l.as_ptr(), p.as_ptr(), flags) };
-        if r { crate::api::guard::open("combo"); }
+        if r { crate::api::guard::open("combo", &label); }
         r
     }
 
@@ -118,7 +118,7 @@ impl ImGuiApi {
         }
         let c = cstr(&label);
         let r = unsafe { sys::igBeginListBox(c.as_ptr(), vec2s(size.x, size.y)) };
-        if r { crate::api::guard::open("listbox"); }
+        if r { crate::api::guard::open("listbox", &label); }
         r
     }
 

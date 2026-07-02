@@ -303,7 +303,7 @@ impl ImGuiApi {
         if is_in_frame() {
             let c = cstr(&id);
             unsafe { sys::igPushID_Str(c.as_ptr()) };
-            crate::api::guard::open("id");
+            crate::api::guard::open_bare("id");
         }
     }
 
@@ -312,7 +312,7 @@ impl ImGuiApi {
     fn push_id_int(&self, id: i32) {
         if is_in_frame() {
             unsafe { sys::igPushID_Int(id) };
-            crate::api::guard::open("id");
+            crate::api::guard::open_bare("id");
         }
     }
 
@@ -339,7 +339,7 @@ impl ImGuiApi {
     fn push_style_color(&self, idx: i32, color: Color) {
         if is_in_frame() {
             unsafe { sys::igPushStyleColor_Vec4(idx, imvec4(color)) };
-            crate::api::guard::open("style_color");
+            crate::api::guard::open_bare("style_color");
         }
     }
 
@@ -359,7 +359,7 @@ impl ImGuiApi {
     fn push_style_var_float(&self, idx: i32, value: f32) {
         if is_in_frame() {
             unsafe { sys::igPushStyleVar_Float(idx, value) };
-            crate::api::guard::open("style_var");
+            crate::api::guard::open_bare("style_var");
         }
     }
 
@@ -368,7 +368,7 @@ impl ImGuiApi {
     fn push_style_var_vec2(&self, idx: i32, value: Vector2) {
         if is_in_frame() {
             unsafe { sys::igPushStyleVar_Vec2(idx, vec2(value.x, value.y)) };
-            crate::api::guard::open("style_var");
+            crate::api::guard::open_bare("style_var");
         }
     }
 
@@ -388,7 +388,7 @@ impl ImGuiApi {
     fn push_button_repeat(&self, repeat: bool) {
         if is_in_frame() {
             unsafe { sys::igPushButtonRepeat(repeat) };
-            crate::api::guard::open("button_repeat");
+            crate::api::guard::open_bare("button_repeat");
         }
     }
 
@@ -415,7 +415,7 @@ impl ImGuiApi {
     fn begin_disabled(&self, disabled: bool) {
         if is_in_frame() {
             unsafe { sys::igBeginDisabled(disabled) };
-            crate::api::guard::open("disabled");
+            crate::api::guard::open_bare("disabled");
         }
     }
 

@@ -61,9 +61,10 @@ impl ImGuiApi {
         if !is_in_frame() {
             return false;
         }
+        crate::api::guard::recover_before_window();
         let c = cstr(&name);
         let r = unsafe { sys::igBegin(c.as_ptr(), std::ptr::null_mut(), flags) };
-        crate::api::guard::open("window");
+        crate::api::guard::open("window", &name);
         r
     }
 
@@ -77,7 +78,7 @@ impl ImGuiApi {
         }
         let c = cstr(&id);
         let r = unsafe { sys::igBeginChild_Str(c.as_ptr(), vec2s(width, height), border, flags) };
-        crate::api::guard::open("child");
+        crate::api::guard::open("child", &id);
         r
     }
 

@@ -154,9 +154,10 @@ impl ImGuiApi {
         if !is_in_frame() {
             return false;
         }
+        crate::api::guard::recover_before_window();
         let c = cstr(&name);
         let r = unsafe { sys::igBegin(c.as_ptr(), std::ptr::null_mut(), 0) };
-        crate::api::guard::open("window");
+        crate::api::guard::open("window", &name);
         r
     }
 
@@ -185,7 +186,7 @@ impl ImGuiApi {
         }
         let c = cstr(&id);
         let r = unsafe { sys::igBeginChild_Str(c.as_ptr(), vec2s(width, height), false, 0) };
-        crate::api::guard::open("child");
+        crate::api::guard::open("child", &id);
         r
     }
 
@@ -365,7 +366,7 @@ impl ImGuiApi {
         }
         let c = cstr(&label);
         let r = unsafe { sys::igTreeNode_Str(c.as_ptr()) };
-        if r { crate::api::guard::open("tree"); }
+        if r { crate::api::guard::open("tree", &label); }
         r
     }
 
@@ -396,7 +397,7 @@ impl ImGuiApi {
             return false;
         }
         let r = unsafe { sys::igBeginMenuBar() };
-        if r { crate::api::guard::open("menubar"); }
+        if r { crate::api::guard::open_bare("menubar"); }
         r
     }
 
@@ -416,7 +417,7 @@ impl ImGuiApi {
         }
         let c = cstr(&label);
         let r = unsafe { sys::igBeginMenu(c.as_ptr(), true) };
-        if r { crate::api::guard::open("menu"); }
+        if r { crate::api::guard::open("menu", &label); }
         r
     }
 

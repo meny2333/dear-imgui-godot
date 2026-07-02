@@ -44,7 +44,7 @@ impl ImGuiApi {
         }
         let c = cstr(&label);
         let r = unsafe { sys::igTreeNodeEx_Str(c.as_ptr(), flags) };
-        if r { crate::api::guard::open("tree"); }
+        if r { crate::api::guard::open("tree", &label); }
         r
     }
 

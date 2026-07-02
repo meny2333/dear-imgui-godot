@@ -48,7 +48,7 @@ impl ImGuiApi {
         }
         let c = cstr(&id);
         let r = unsafe { sys::igBeginTabBar(c.as_ptr(), flags) };
-        if r { crate::api::guard::open("tabbar"); }
+        if r { crate::api::guard::open("tabbar", &id); }
         r
     }
 
@@ -69,7 +69,7 @@ impl ImGuiApi {
         }
         let c = cstr(&label);
         let r = unsafe { sys::igBeginTabItem(c.as_ptr(), std::ptr::null_mut(), flags) };
-        if r { crate::api::guard::open("tabitem"); }
+        if r { crate::api::guard::open("tabitem", &label); }
         r
     }
 
@@ -84,7 +84,7 @@ impl ImGuiApi {
         let c = cstr(&label);
         let mut o = open;
         let selected = unsafe { sys::igBeginTabItem(c.as_ptr(), &mut o, flags) };
-        if selected { crate::api::guard::open("tabitem"); }
+        if selected { crate::api::guard::open("tabitem", &label); }
         vdict! { "selected" => selected, "open" => o }
     }
 

@@ -39,7 +39,7 @@ impl ImGuiApi {
             return false;
         }
         let r = unsafe { sys::igBeginDragDropSource(flags) };
-        if r { crate::api::guard::open("ddsource"); }
+        if r { crate::api::guard::open_bare("ddsource"); }
         r
     }
 
@@ -78,7 +78,7 @@ impl ImGuiApi {
             return false;
         }
         let r = unsafe { sys::igBeginDragDropTarget() };
-        if r { crate::api::guard::open("ddtarget"); }
+        if r { crate::api::guard::open_bare("ddtarget"); }
         r
     }
 

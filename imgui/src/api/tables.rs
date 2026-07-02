@@ -140,7 +140,7 @@ impl ImGuiApi {
         let r = unsafe {
             sys::igBeginTable(c.as_ptr(), columns, flags, vec2s(outer_size.x, outer_size.y), scaled(inner_width))
         };
-        if r { crate::api::guard::open("table"); }
+        if r { crate::api::guard::open("table", &id); }
         r
     }
 

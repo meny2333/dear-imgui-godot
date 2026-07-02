@@ -31,7 +31,7 @@ impl ImGuiApi {
         }
         let c = cstr(&label);
         let r = unsafe { sys::igBeginMenu(c.as_ptr(), enabled) };
-        if r { crate::api::guard::open("menu"); }
+        if r { crate::api::guard::open("menu", &label); }
         r
     }
 
@@ -60,7 +60,7 @@ impl ImGuiApi {
             return false;
         }
         let r = unsafe { sys::igBeginMainMenuBar() };
-        if r { crate::api::guard::open("mainmenubar"); }
+        if r { crate::api::guard::open_bare("mainmenubar"); }
         r
     }
 
@@ -90,7 +90,7 @@ impl ImGuiApi {
         }
         let c = cstr(&id);
         let r = unsafe { sys::igBeginPopup(c.as_ptr(), flags) };
-        if r { crate::api::guard::open("popup"); }
+        if r { crate::api::guard::open("popup", &id); }
         r
     }
 
@@ -103,7 +103,7 @@ impl ImGuiApi {
         }
         let c = cstr(&name);
         let r = unsafe { sys::igBeginPopupModal(c.as_ptr(), std::ptr::null_mut(), flags) };
-        if r { crate::api::guard::open("popup"); }
+        if r { crate::api::guard::open("popup", &name); }
         r
     }
 
@@ -137,7 +137,7 @@ impl ImGuiApi {
             c.as_ptr()
         };
         let r = unsafe { sys::igBeginPopupContextItem(ptr, popup_flags) };
-        if r { crate::api::guard::open("popup"); }
+        if r { crate::api::guard::open("popup", &id); }
         r
     }
 
@@ -155,7 +155,7 @@ impl ImGuiApi {
             c.as_ptr()
         };
         let r = unsafe { sys::igBeginPopupContextWindow(ptr, popup_flags) };
-        if r { crate::api::guard::open("popup"); }
+        if r { crate::api::guard::open("popup", &id); }
         r
     }
 
@@ -188,7 +188,7 @@ impl ImGuiApi {
     fn begin_tooltip(&self) {
         if is_in_frame() {
             unsafe { sys::igBeginTooltip() };
-            crate::api::guard::open("tooltip");
+            crate::api::guard::open_bare("tooltip");
         }
     }
 

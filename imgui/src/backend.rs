@@ -226,6 +226,7 @@ impl INode for ImGuiController {
             }
             CONTROLLER_ACTIVE.store(false, Ordering::SeqCst);
         }
+        crate::api::guard::shutdown();
     }
 
     fn process(&mut self, delta: f64) {
@@ -315,6 +316,10 @@ impl INode for ImGuiController {
                 ctx.io_mut().want_save_ini_settings = false;
             }
         }
+
+        // The frame is fully ended now, so a debugger break here cannot re-enter an open
+        // ImGui frame. Any structural error caught this frame breaks at this point.
+        crate::api::guard::break_if_pending();
     }
 
     fn input(&mut self, event: Gd<InputEvent>) {

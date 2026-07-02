@@ -52,7 +52,7 @@ impl ImGuiApi {
     fn push_text_wrap_pos(&self, wrap_x: f32) {
         if is_in_frame() {
             unsafe { sys::igPushTextWrapPos(scaled(wrap_x)) };
-            crate::api::guard::open("text_wrap");
+            crate::api::guard::open_bare("text_wrap");
         }
     }
 
