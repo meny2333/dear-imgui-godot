@@ -124,6 +124,26 @@ impl ImGuiApi {
         crate::backend::desired_scale()
     }
 
+    /// The canvas layer the ImGui overlay renders on. `set_render_layer` can be
+    /// called to change it
+    #[constant]
+    const DEFAULT_RENDER_LAYER: i32 = crate::backend::DEFAULT_RENDER_LAYER;
+
+    /// Set the canvas layer the ImGui overlay renders on. Higher layers draw in
+    /// front of lower ones, so change this to place other CanvasLayer content above
+    /// or below the interface. Defaults to `DEFAULT_RENDER_LAYER` (100) and takes
+    /// effect on the next frame.
+    #[func]
+    fn set_render_layer(&self, layer: i32) {
+        crate::backend::set_desired_render_layer(layer);
+    }
+
+    /// Return the canvas layer the ImGui overlay renders on.
+    #[func]
+    fn get_render_layer(&self) -> i32 {
+        crate::backend::desired_render_layer()
+    }
+
     /// Return the Dear ImGui library version string.
     #[func]
     fn get_version(&self) -> GString {

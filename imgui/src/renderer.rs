@@ -13,6 +13,8 @@ const CLIP_FIT_EPS: f32 = 1.0;
 pub struct CanvasRenderer {
     canvas: Rid,
     item: Rid,
+    viewport: Rid,
+    layer: i32,
 }
 
 impl CanvasRenderer {
@@ -20,16 +22,29 @@ impl CanvasRenderer {
         Self {
             canvas: Rid::Invalid,
             item: Rid::Invalid,
+            viewport: Rid::Invalid,
+            layer: crate::backend::DEFAULT_RENDER_LAYER,
         }
     }
 
     pub fn init(&mut self, viewport: Rid) {
         let mut rs = RenderingServer::singleton();
+        self.viewport = viewport;
         self.canvas = rs.canvas_create();
         self.item = rs.canvas_item_create();
+        self.layer = crate::backend::desired_render_layer();
         rs.viewport_attach_canvas(viewport, self.canvas);
-        rs.viewport_set_canvas_stacking(viewport, self.canvas, 100, 0);
+        rs.viewport_set_canvas_stacking(viewport, self.canvas, self.layer, 0);
         rs.canvas_item_set_parent(self.item, self.canvas);
+    }
+
+    /// Restack the canvas onto `layer` when it differs from the layer in use.
+    pub fn sync_layer(&mut self, layer: i32) {
+        if layer == self.layer || self.canvas == Rid::Invalid {
+            return;
+        }
+        self.layer = layer;
+        RenderingServer::singleton().viewport_set_canvas_stacking(self.viewport, self.canvas, layer, 0);
     }
 
     pub fn render(&mut self, draw_data: &DrawData, textures: &TextureRegistry) {

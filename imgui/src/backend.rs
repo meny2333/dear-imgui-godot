@@ -1,5 +1,5 @@
 use std::cell::Cell;
-use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI32, AtomicU32, Ordering};
 
 use godot::classes::{DirAccess, DisplayServer, FileAccess, INode, InputEvent, Node, Texture2D};
 use godot::prelude::*;
@@ -16,6 +16,22 @@ static RESET_REQUESTED: AtomicBool = AtomicBool::new(false);
 
 pub(crate) fn request_reset_layout() {
     RESET_REQUESTED.store(true, Ordering::Relaxed);
+}
+
+/// The canvas layer the ImGui overlay renders on by default.
+pub const DEFAULT_RENDER_LAYER: i32 = 100;
+
+/// The canvas layer the active controller should render its overlay on.
+static DESIRED_RENDER_LAYER: AtomicI32 = AtomicI32::new(DEFAULT_RENDER_LAYER);
+
+/// Sets the canvas layer ImGui renders on.
+pub(crate) fn set_desired_render_layer(layer: i32) {
+    DESIRED_RENDER_LAYER.store(layer, Ordering::Relaxed);
+}
+
+/// Returns the canvas layer ImGui renders on.
+pub(crate) fn desired_render_layer() -> i32 {
+    DESIRED_RENDER_LAYER.load(Ordering::Relaxed)
 }
 
 /// The global UI scale the active controller should apply, stored as `f32` bits.
@@ -249,6 +265,8 @@ impl INode for ImGuiController {
             );
             self.ctx = Some(ctx);
         }
+
+        self.renderer.sync_layer(desired_render_layer());
 
         let scale = applied_scale();
         let ctx = self.ctx.as_mut().unwrap();
