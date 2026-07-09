@@ -21,6 +21,7 @@
 > LAYOUT IS SYNCHRONOUS! Attempting to use the `await` keyword within the callback bound to `imgui_layout` will crash the session. It is highly recommended to use the [gd-promise](https://github.com/shatadev/gd-promise) addon and wrap the await with `from_signal`.
 
 Instead of:
+
 ```gdscript
 if ImGui.begin("Window"):
     if ImGui.button("Press", 0.0, 0.0):
@@ -42,17 +43,19 @@ ImGui.end()
 
 **Do not attempt to build UI asynchronously.**
 
+# Why Rust instead of C++?
+
+Most are already familiar with [pkdawon's imgui-godot](https://github.com/pkdawson/imgui-godot) addon, which uses C++ GDExtension. My original goal was to add web support to that addon, but dependencies were outdated and the project appears to be abandoned. I happen to prefer [godot-rust](https://github.com/godot-rust/gdext) for GDExtension development, so I opted for a more direct bridge with [imgui-rs](https://github.com/imgui-rs/imgui-rs) instead.
+
 # Supports
 
 - Editor: Godot 4.3+
 - Language: GDScript, C#, Rust
 - Platform: Windows, Linux, macOS, Web
 
-# Why Rust instead of C++?
+# Usage
 
-Most are already familiar with [pkdawon's imgui-godot](https://github.com/pkdawson/imgui-godot) addon, which uses C++ GDExtension. My original goal was to add web support to that addon, but dependencies were outdated and the project appears to be abandoned. I happen to prefer [godot-rust](https://github.com/godot-rust/gdext) for GDExtension development, so I opted for a more direct bridge with [imgui-rs](https://github.com/imgui-rs/imgui-rs) instead.
-
-# Usage - GDScript
+## API
 
 `ImGui` is a global Node (`ImGuiApi` class). Build UI inside its per-frame `imgui_layout` signal (emitted from Rust):
 
@@ -68,7 +71,40 @@ func _on_layout() -> void:
     ImGui.end()
 ```
 
-# Usage - C#
+## Flags
+
+Flags are predefined as constants in the `ImGuiApi` class.
+
+There are a handful of methods that require flags to be passed in. If you don't have any specific flags you want to use for that call, just pass in `0`.
+
+Some methods have variants that end in `_ex`, where you can optionally pass in flags of your choosing.
+
+To combine flags, use the bitwise OR operator `|` , `|=`
+
+```gdscript
+extends Node
+
+var window_can_collapse_checked: bool = true
+var window_can_scroll_checked: bool = true
+
+func _ready() -> void:
+	ImGui.imgui_layout.connect(self._on_layout)
+
+func _on_layout():
+	var flags = 0
+	if not window_can_collapse_checked:
+		flags |= ImGui.WINDOW_NO_COLLAPSE
+	if not window_can_scroll_checked:
+		flags = flags | ImGui.WINDOW_NO_SCROLL_WITH_MOUSE | ImGui.WINDOW_NO_SCROLLBAR
+	ImGui.set_next_window_size(500, 500, ImGui.COND_FIRST_USE_EVER)
+	if ImGui.begin_ex("MyWindow", flags):
+		window_can_collapse_checked = ImGui.checkbox("can collapse window", window_can_collapse_checked)
+		window_can_scroll_checked = ImGui.checkbox("can scroll window", window_can_scroll_checked)
+		ImGui.dummy(Vector2(0, 1000))
+	ImGui.end()
+```
+
+## C#
 
 On the .NET build of Godot, drive the same API from C# via the static `ImGui` wrapper (`addons/dear-imgui-godot/dotnet/ImGui.cs`). It mirrors the GDScript methods. Connect a handler with `ImGui.OnLayout` to build UI.
 
@@ -92,31 +128,17 @@ public partial class ImGuiExample : Node
 }
 ```
 
-# Usage - Rust
-
-For complete imgui-rs API access, build UI in Rust with `with_ui`, called from a handler connected to `imgui_layout`.
-
-```rust
-use godot::prelude::*;
-use crate::with_ui;
-
-#[godot_api]
-impl ImGuiExample {
-    #[func]
-    fn on_layout(&mut self) {
-        with_ui(|ui| {
-            ui.window("Rust window").build(|| {
-                ui.text("the entire imgui-rs API is available here");
-                // ui.slider(...), ui.plot_lines(...), ui.input_text(...), etc.
-            });
-        });
-    }
-}
-```
-
 # Installation
+> [!IMPORTANT]
+> After installing or updating, restart the editor, and toggle both the plugin and ImGui global on and off in the project settings. It may take a few tries.
 
-## 1. Release Download
+
+## 1. Asset Store / AssetLib (Recommended)
+- **For Godot 4.7+, you can download the asset from the official Asset Store** https://store.godotengine.org/asset/shatadev/dear-imgui-godot/
+- For Godot 4.6 and below, you can download the asset from the Asset Library
+https://godotengine.org/asset-library/asset/5309
+
+## 2. Release Download
 
 Download latest [release](https://github.com/shatadev/dear-imgui-godot/releases)
 
@@ -124,7 +146,7 @@ Copy or extract `dear-imgui-godot/` into your project's `addons/` folder.
 
 Enable **Dear ImGui Godot** in _Project Settings → Plugins_. The plugin registers the `ImGui` global on enable. This autoload **must remain enabled in order for the API to work.** The plugin prints a warning if the autoload or plugin is not enabled.
 
-### C# setup
+## C# setup
 
 The wrapper lives at `addons/dear-imgui-godot/dotnet/ImGui.cs` and is compiled into the project assembly automatically by the .NET SDK's default `**/*.cs` glob.
 
