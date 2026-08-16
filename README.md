@@ -53,6 +53,37 @@ Most are already familiar with [pkdawon's imgui-godot](https://github.com/pkdaws
 - Language: GDScript, C#, Rust
 - Platform: Windows, Linux, macOS, Web
 
+# Installation
+> [!IMPORTANT]
+> After installing or updating, restart the editor, and toggle both the plugin and ImGui global on and off in the project settings. It may take a few tries.
+
+
+## 1. Asset Store / AssetLib (Recommended)
+- **For Godot 4.7+, you can download the asset from the official Asset Store** https://store.godotengine.org/asset/shatadev/dear-imgui-godot/
+- For Godot 4.6 and below, you can download the asset from the Asset Library
+https://godotengine.org/asset-library/asset/5309
+
+## 2. Release Download
+
+Download latest [release](https://github.com/shatadev/dear-imgui-godot/releases)
+
+Copy or extract `dear-imgui-godot/` into your project's `addons/` folder.
+
+Enable **Dear ImGui Godot** in _Project Settings → Plugins_. The plugin registers the `ImGui` global on enable. This autoload **must remain enabled in order for the API to work.** The plugin prints a warning if the autoload or plugin is not enabled.
+
+## C# setup
+
+The wrapper lives at `addons/dear-imgui-godot/dotnet/ImGui.cs` and is compiled into the project assembly automatically by the .NET SDK's default `**/*.cs` glob.
+
+1. If the project has no C# code yet, create the solution once: **Project → Tools → C# → Create C# solution**.
+2. Enable the plugin and rebuild the project to get started.
+
+Notes:
+
+- The C# methods match the GDScript methods. Complete imgui-rs API access (`with_ui`) is Rust-only.
+- `ImGui` is a global type for parity with GDScript. If it collides with another `ImGui` (e.g. ImGui.NET), alias it with a `using`.
+- If your project sets `<EnableDefaultCompileItems>false</EnableDefaultCompileItems>`, add `addons/dear-imgui-godot/dotnet/ImGui.cs` to your compile items manually.
+
 # Usage
 
 ## API
@@ -127,37 +158,6 @@ public partial class ImGuiExample : Node
     }
 }
 ```
-
-# Installation
-> [!IMPORTANT]
-> After installing or updating, restart the editor, and toggle both the plugin and ImGui global on and off in the project settings. It may take a few tries.
-
-
-## 1. Asset Store / AssetLib (Recommended)
-- **For Godot 4.7+, you can download the asset from the official Asset Store** https://store.godotengine.org/asset/shatadev/dear-imgui-godot/
-- For Godot 4.6 and below, you can download the asset from the Asset Library
-https://godotengine.org/asset-library/asset/5309
-
-## 2. Release Download
-
-Download latest [release](https://github.com/shatadev/dear-imgui-godot/releases)
-
-Copy or extract `dear-imgui-godot/` into your project's `addons/` folder.
-
-Enable **Dear ImGui Godot** in _Project Settings → Plugins_. The plugin registers the `ImGui` global on enable. This autoload **must remain enabled in order for the API to work.** The plugin prints a warning if the autoload or plugin is not enabled.
-
-## C# setup
-
-The wrapper lives at `addons/dear-imgui-godot/dotnet/ImGui.cs` and is compiled into the project assembly automatically by the .NET SDK's default `**/*.cs` glob.
-
-1. If the project has no C# code yet, create the solution once: **Project → Tools → C# → Create C# solution**.
-2. Enable the plugin and rebuild the project to get started.
-
-Notes:
-
-- The C# methods match the GDScript methods. Complete imgui-rs API access (`with_ui`) is Rust-only.
-- `ImGui` is a global type for parity with GDScript. If it collides with another `ImGui` (e.g. ImGui.NET), alias it with a `using`.
-- If your project sets `<EnableDefaultCompileItems>false</EnableDefaultCompileItems>`, add `addons/dear-imgui-godot/dotnet/ImGui.cs` to your compile items manually.
 
 # Compiling
 
