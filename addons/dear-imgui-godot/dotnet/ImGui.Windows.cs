@@ -30,7 +30,7 @@ public static partial class ImGui
     /// <summary>Begin a window with window flags. Combine the <c>Window*</c> constants for <paramref name="flags"/>.</summary>
     public static bool Begin(string name, int flags) => (bool)Api.Call("begin_ex", name, flags);
 
-    /// <summary>Begin a scrolling child region with a border toggle and window flags; a width or height of 0 fills the available space.</summary>
+    /// <summary>Begin a scrolling child region with a border toggle and window flags; a width or height of 0 fills the available space. Must be a child of a window or child window.</summary>
     public static bool BeginChild(string id, float width, float height, bool border, int flags) =>
         (bool)Api.Call("begin_child_ex", id, width, height, border, flags);
 

@@ -71,6 +71,8 @@ impl ImGuiApi {
     /// Begin a scrolling child region with a border toggle and window flags.
     ///
     /// A width or height of `0` fills the available space in that axis.
+    ///
+    /// NOTE: Must be a direct child of an existing window or child window. Anything else will error.
     #[func]
     fn begin_child_ex(&self, id: GString, width: f32, height: f32, border: bool, flags: i32) -> bool {
         if !is_in_frame() {
