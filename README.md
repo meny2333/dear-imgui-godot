@@ -174,6 +174,7 @@ No Godot binary is needed at build time. The crate uses gdext's bundled `api-4-3
 
 # TODO
 
+- Proper detailed documentation
 - GDNative 3.x
 - Extension chaining for better imgui-rs API access
 
