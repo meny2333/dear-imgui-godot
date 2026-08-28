@@ -8,6 +8,11 @@ on:
       - "imgui/**"
       - "addons/**"
       - ".github/workflows/android.yml"
+  pull_request:
+    paths:
+      - "imgui/**"
+      - "addons/**"
+      - ".github/workflows/android.yml"
 
 env:
   RUST_NIGHTLY: nightly-2026-06-19

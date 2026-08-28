@@ -51,7 +51,7 @@ Most are already familiar with [pkdawon's imgui-godot](https://github.com/pkdaws
 
 - Editor: Godot 4.3+
 - Language: GDScript, C#, Rust
-- Platform: Windows, Linux, macOS, Web
+- Platform: Windows, Linux, macOS, Web, Android
 
 # Installation
 > [!IMPORTANT]
