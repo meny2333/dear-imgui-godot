@@ -85,12 +85,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cargo +"$RUST_NIGHTLY" build --target "$RUST_TARGET"
+          cargo +"$RUST_NIGHTLY" build --profile editor --target "$RUST_TARGET"
           cargo +"$RUST_NIGHTLY" build --release --target "$RUST_TARGET"
 
           output="../addons/dear-imgui-godot/target/android"
           mkdir -p "$output/debug/${{ matrix.arch }}" "$output/release/${{ matrix.arch }}"
-          cp "../addons/dear-imgui-godot/target/$RUST_TARGET/debug/libdear_imgui_godot.so" \
+          cp "../addons/dear-imgui-godot/target/$RUST_TARGET/editor/libdear_imgui_godot.so" \
             "$output/debug/${{ matrix.arch }}/libdear_imgui_godot.so"
           cp "../addons/dear-imgui-godot/target/$RUST_TARGET/release/libdear_imgui_godot.so" \
             "$output/release/${{ matrix.arch }}/libdear_imgui_godot.so"
