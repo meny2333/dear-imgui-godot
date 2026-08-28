@@ -1,14 +1,10 @@
 use std::collections::HashMap;
 
 use godot::classes::image::Format;
-use godot::classes::{FileAccess, Image, ImageTexture, ProjectSettings, Texture2D};
+use godot::classes::{Image, ImageTexture, Texture2D};
 use godot::prelude::*;
 
-use imgui::{Context, FontConfig, FontGlyphRanges, FontSource, TextureId};
-
-const DEFAULT_FONT_SIZE: f32 = 13.0;
-const FONT_PATH_SETTING: &str = "imgui/font_path";
-const FONT_SIZE_SETTING: &str = "imgui/font_size";
+use imgui::{Context, FontConfig, FontSource, TextureId};
 
 pub struct TextureRegistry {
     map: HashMap<usize, Gd<Texture2D>>,
@@ -39,39 +35,10 @@ impl TextureRegistry {
     }
 }
 
-fn configured_font(scale: f32) -> Option<(Vec<u8>, f32)> {
-    let settings = ProjectSettings::singleton();
-    let path = settings
-        .get_setting(FONT_PATH_SETTING)
-        .try_to::<GString>()
-        .ok()?
-        .to_string();
-    if path.is_empty() {
-        return None;
-    }
-
-    let size = settings
-        .get_setting(FONT_SIZE_SETTING)
-        .try_to::<f64>()
-        .ok()
-        .map(|value| value as f32)
-        .filter(|value| value.is_finite() && *value > 0.0)
-        .unwrap_or(DEFAULT_FONT_SIZE);
-
-    let data = FileAccess::get_file_as_bytes(path.as_str());
-    if data.is_empty() {
-        godot_warn!("dear-imgui-godot: unable to load configured font: {path}");
-        return None;
-    }
-
-    Some((data.to_vec(), size * scale))
-}
-
 /// Build the font atlas at the given UI scale and register its texture, returning
-/// the new texture id. A configured TTF/OTF font uses the common simplified
-/// Chinese glyph range so CJK text does not overflow the atlas on mobile. When
-/// rebuilding at runtime, pass the previous id as old_id so its texture can be
-/// released.
+/// the new texture id. The default font is baked at `13 * scale` pixels so text
+/// stays crisp at any scale. When rebuilding at runtime, pass the previous id as
+/// `old_id` so its texture can be released.
 pub fn build_font_atlas(
     ctx: &mut Context,
     textures: &mut TextureRegistry,
@@ -80,30 +47,15 @@ pub fn build_font_atlas(
 ) -> usize {
     let atlas = ctx.fonts();
     atlas.clear();
-    if let Some((data, size_pixels)) = configured_font(scale) {
-        atlas.add_font(&[FontSource::TtfData {
-            data: &data,
-            size_pixels,
-            config: Some(FontConfig {
-                size_pixels,
-                oversample_h: 1,
-                oversample_v: 1,
-                pixel_snap_h: true,
-                glyph_ranges: FontGlyphRanges::chinese_simplified_common(),
-                ..Default::default()
-            }),
-        }]);
-    } else {
-        atlas.add_font(&[FontSource::DefaultFontData {
-            config: Some(FontConfig {
-                size_pixels: DEFAULT_FONT_SIZE * scale,
-                oversample_h: 1,
-                oversample_v: 1,
-                pixel_snap_h: true,
-                ..Default::default()
-            }),
-        }]);
-    }
+    atlas.add_font(&[FontSource::DefaultFontData {
+        config: Some(FontConfig {
+            size_pixels: 13.0 * scale,
+            oversample_h: 1,
+            oversample_v: 1,
+            pixel_snap_h: true,
+            ..Default::default()
+        }),
+    }]);
 
     let (width, height, data) = {
         let tex = atlas.build_rgba32_texture();
